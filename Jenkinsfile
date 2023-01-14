@@ -1,46 +1,41 @@
 pipeline {
-  agent any
+  agent none
   stages {
-    stage('XtTools Copy') {
-      steps {
-        echo 'xtools'
-      }
-    }
-
-    stage('Windows') {
+    stage('Initial Setup') {
       parallel {
-        stage('Windows') {
+        stage('XtTools Copy') {
           steps {
-            echo 'win'
+            node(label: 'vlno-tenfe02-rel') {
+              sh '''echo \'mv $RELEASE_VERSION /usr/local/xrfs_s/xars/XtTools/\'
+						'''
+            }
+
           }
         }
 
-        stage('Linux') {
+        stage('win/linux/osx XtDevTools Copy') {
           steps {
-            echo 'linux'
-          }
-        }
+            node(label: 'vlno-tenfe02-rel') {
+              sh '''sh \'mkdir -p $RELEASE_VERSION\'
+								sh \'cd $RELEASE_VERSION\'
+								sh \'mkdir -p builds tools\'
+								sh \'cp /usr/local/xrfs_s/xars/XtTools/$RELEASE_VERSION/builds/*win32.tgz builds/\'
+								sh \'cp /usr/local/xrfs_s/xars/XtTools/$RELEASE_VERSION/tools/*win32.tgz tools/\'
+								sh \'cd /usr/local/xrfs_s/xars/winWS/$PRECREATED_WS_BRANCH\'
+								sh \'cp -r $PREVIOUS_RELEASE_VERSION $RELEASE_VERSION\''''
+            }
 
-        stage('osx') {
-          steps {
-            echo 'osx'
-          }
-        }
-
-        stage('vppin-samab2 ') {
-          steps {
-            echo 'asd'
           }
         }
 
       }
     }
 
-    stage('end') {
-      steps {
-        echo 'end'
-      }
-    }
-
+  }
+  environment {
+    RELEASE_VERSION = 'RJ-2023.0-2023-01-12-eng2'
+    PREVIOUS_RELEASE_VERSION = 'RI-2022.10'
+    PRECREATED_WS_BRANCH = 'xjello_dev'
+    isOSX = 'false'
   }
 }
